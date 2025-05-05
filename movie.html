@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Movie Ticket Booking</title>
+  <link href="https://fonts.googleapis.com/css2?family=Shadows+Into+Light&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: auto;
+      padding: 40px 20px;
+    }
+
+    h1 {
+      text-align: center;
+      color: #222;
+      font-family: 'Shadows Into Light', cursive;
+      font-size: 3em;
+      margin-bottom: 40px;
+    }
+
+    h2 {
+      text-align: center;
+      color: #222;
+    }
+
+    .movie-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 30px;
+      justify-content: center;
+      margin-top: 20px;
+    }
+
+    .movie-item {
+      width: 220px;
+      cursor: pointer;
+      text-align: center;
+      background: white;
+      padding: 15px;
+      border-radius: 12px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    .movie-item:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 15px 25px rgba(0,0,0,0.2);
+    }
+
+    .movie-item img {
+      width: 100%;
+      height: 300px;
+      object-fit: cover;
+      border-radius: 8px;
+    }
+
+    .movie-title {
+      font-weight: bold;
+      margin-top: 10px;
+      font-size: 18px;
+      font-family: 'Shadows Into Light', cursive;
+    }
+
+    .form-section {
+      background: #fff;
+      padding: 30px;
+      border-radius: 12px;
+      margin-top: 40px;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    }
+
+    label {
+      display: block;
+      margin-top: 15px;
+      font-weight: 600;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 10px;
+      margin-top: 6px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 14px;
+    }
+
+    #seats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .seat {
+      width: 35px;
+      height: 35px;
+      background: #ddd;
+      border-radius: 6px;
+      text-align: center;
+      line-height: 35px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .seat.selected {
+      background: #28a745;
+      color: white;
+    }
+
+    .summary {
+      margin-top: 20px;
+      font-size: 16px;
+    }
+
+    button {
+      width: 100%;
+      margin-top: 20px;
+      padding: 14px;
+      background: #ff5e62;
+      background: linear-gradient(to right, #ff9966, #ff5e62);
+      color: white;
+      font-size: 16px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: opacity 0.3s ease;
+    }
+
+    button:hover {
+      opacity: 0.9;
+    }
+
+    .confirmation {
+      margin-top: 25px;
+      color: #155724;
+      background: #d4edda;
+      padding: 15px;
+      border-radius: 6px;
+      border: 1px solid #c3e6cb;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Movie Selection -->
+    <div id="movieSelection">
+      <h1>Cinispot</h1>
+      <div class="movie-list">
+        <div class="movie-item" onclick="selectMovie('Avengers', 250)">
+          <img src="C:\Users\Admin\Downloads\avengers.jfif" alt="Avengers">
+          <div class="movie-title">Avengers</div>
+        </div>
+        <div class="movie-item" onclick="selectMovie('Batman', 300)">
+          <img src="C:\Users\Admin\Downloads\batman.jfif" alt="Batman">
+          <div class="movie-title">Batman</div>
+        </div>
+        <div class="movie-item" onclick="selectMovie('Superman', 200)">
+          <img src="C:\Users\Admin\Downloads\superman.jfif" alt="Superman">
+          <div class="movie-title">Superman</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Booking Form -->
+    <div id="bookingForm" class="form-section hidden">
+      <h2>Book Your Ticket</h2>
+      <label for="selectedMovie">Movie:</label>
+      <input type="text" id="selectedMovie" readonly>
+
+      <label for="date">Choose a Date:</label>
+      <input type="date" id="date">
+
+      <label for="time">Select Show Time:</label>
+      <select id="time">
+        <option>9:00 AM</option>
+        <option>12:00 PM</option>
+        <option>3:00 PM</option>
+        <option>6:00 PM</option>
+        <option>9:00 PM</option>
+      </select>
+
+      <label>Choose Seats:</label>
+      <div id="seats"></div>
+
+      <label for="name">Your Name:</label>
+      <input type="text" id="name">
+
+      <label for="email">Your Email:</label>
+      <input type="email" id="email">
+
+      <div class="summary">
+        <p>Total Price: <span id="total">₹0</span></p>
+        <button onclick="confirmBooking()">Confirm Booking</button>
+      </div>
+      <div id="confirmation" class="confirmation"></div>
+    </div>
+  </div>
+
+  <script>
+    const seatsContainer = document.getElementById('seats');
+    const totalDisplay = document.getElementById('total');
+    const confirmation = document.getElementById('confirmation');
+    const selectedMovieInput = document.getElementById('selectedMovie');
+    let selectedSeats = [];
+    let ticketPrice = 0;
+
+    function createSeats() {
+      for (let i = 1; i <= 40; i++) {
+        const seat = document.createElement('div');
+        seat.classList.add('seat');
+        seat.innerText = i;
+        seat.addEventListener('click', () => toggleSeat(seat, i));
+        seatsContainer.appendChild(seat);
+      }
+    }
+
+    function toggleSeat(seat, number) {
+      seat.classList.toggle('selected');
+      if (selectedSeats.includes(number)) {
+        selectedSeats = selectedSeats.filter(n => n !== number);
+      } else {
+        selectedSeats.push(number);
+      }
+      updateTotal();
+    }
+
+    function updateTotal() {
+      const total = ticketPrice * selectedSeats.length;
+      totalDisplay.innerText = new Intl.NumberFormat('en-IN', {
+        style: 'currency',
+        currency: 'INR'
+      }).format(total);
+    }
+
+    function selectMovie(name, price) {
+      document.getElementById('movieSelection').classList.add('hidden');
+      document.getElementById('bookingForm').classList.remove('hidden');
+      selectedMovieInput.value = name;
+      ticketPrice = price;
+      updateTotal();
+    }
+
+    function confirmBooking() {
+      const name = document.getElementById('name').value;
+      const email = document.getElementById('email').value;
+      const movie = selectedMovieInput.value;
+      const date = document.getElementById('date').value;
+      const time = document.getElementById('time').value;
+      const total = ticketPrice * selectedSeats.length;
+
+      if (!name || !email || selectedSeats.length === 0 || !date) {
+        alert("Please fill out all fields and select seats.");
+        return;
+      }
+
+      const formattedTotal = new Intl.NumberFormat('en-IN', {
+        style: 'currency',
+        currency: 'INR'
+      }).format(total);
+
+      confirmation.innerHTML = 
+        <strong>Booking Confirmed!</strong><br><br>
+        Name: ${name}<br>
+        Email: ${email}<br>
+        Movie: ${movie}<br>
+        Date: ${date}<br>
+        Time: ${time}<br>
+        Seats: ${selectedSeats.join(', ')}<br>
+        Total: ${formattedTotal}
+createSeats();
+  </script>
+</body>
+</html>
+
+
+     
+
+    
+
+
+
+
